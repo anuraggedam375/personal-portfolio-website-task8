@@ -1,33 +1,118 @@
-const form = document.querySelector("#contactForm");
-if (form) {
-  const fields = {
-    name: { error: "nameError", message: "Please enter at least 2 characters.", valid: v => v.trim().length >= 2 },
-    email: { error: "emailError", message: "Enter a valid email address.", valid: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) },
-    phone: { error: "phoneError", message: "Enter a valid phone number (at least 7 characters).", valid: v => /^[0-9+() -]{7,}$/.test(v.trim()) },
-    message: { error: "messageError", message: "Please enter at least 10 characters.", valid: v => v.trim().length >= 10 }
-  };
-  form.addEventListener("submit", event => {
-    event.preventDefault();
-    let isValid = true;
-    Object.entries(fields).forEach(([id, rule]) => {
-      const input = document.getElementById(id);
-      const valid = rule.valid(input.value);
-      document.getElementById(rule.error).textContent = valid ? "" : rule.message;
-      input.setAttribute("aria-invalid", String(!valid));
-      if (!valid) isValid = false;
+// MOBILE NAVIGATION
+const menuBtn = document.getElementById("menuBtn");
+const navLinks = document.getElementById("navLinks");
+
+menuBtn.addEventListener("click", () => {
+    const isOpen = navLinks.classList.toggle("open");
+    menuBtn.setAttribute("aria-expanded", String(isOpen));
+    menuBtn.textContent = isOpen ? "✕" : "☰";
+});
+
+document.querySelectorAll(".nav-links a").forEach(link => {
+    link.addEventListener("click", () => {
+        navLinks.classList.remove("open");
+        menuBtn.setAttribute("aria-expanded", "false");
+        menuBtn.textContent = "☰";
     });
-    const status = document.getElementById("formStatus");
-    if (isValid) {
-      status.textContent = "Thanks! Your form passed validation. (Demo only — nothing was sent.)";
-      form.reset();
-    } else {
-      status.textContent = "Please fix the highlighted fields and try again.";
-    }
-  });
-  Object.keys(fields).forEach(id => {
-    document.getElementById(id).addEventListener("input", () => {
-      const rule = fields[id], input = document.getElementById(id);
-      if (rule.valid(input.value)) document.getElementById(rule.error).textContent = "";
-    });
-  });
+});
+
+
+// SCROLL PROGRESS BAR
+const progressBar = document.getElementById("progressBar");
+
+function updateProgressBar() {
+    const scrollableHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+    const progress = scrollableHeight > 0
+        ? (window.scrollY / scrollableHeight) * 100
+        : 0;
+
+    progressBar.style.width = `${progress}%`;
 }
+
+window.addEventListener("scroll", updateProgressBar);
+updateProgressBar();
+
+
+// SCROLL REVEAL ANIMATION
+const revealElements = document.querySelectorAll(".reveal");
+
+if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.12
+    });
+
+    revealElements.forEach(element => observer.observe(element));
+} else {
+    revealElements.forEach(element => element.classList.add("visible"));
+}
+
+
+// PROJECT FILTERS
+const filterButtons = document.querySelectorAll(".filter-buttons button");
+const projectCards = document.querySelectorAll(".project-card");
+
+filterButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        const selectedFilter = button.dataset.filter;
+
+        filterButtons.forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+
+        projectCards.forEach(card => {
+            const category = card.dataset.category;
+            card.hidden = selectedFilter !== "all" && category !== selectedFilter;
+        });
+    });
+});
+
+
+// CONTACT FORM VALIDATION
+const contactForm = document.getElementById("contactForm");
+const formStatus = document.getElementById("formStatus");
+
+contactForm.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const message = document.getElementById("message").value.trim();
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (name.length < 2) {
+        formStatus.textContent = "Please enter a valid name.";
+        return;
+    }
+
+    if (!emailPattern.test(email)) {
+        formStatus.textContent = "Please enter a valid email address.";
+        return;
+    }
+
+    if (message.length < 10) {
+        formStatus.textContent = "Message must be at least 10 characters.";
+        return;
+    }
+
+    formStatus.textContent =
+        "Your form passed validation! Email sending is not configured yet.";
+
+    contactForm.reset();
+});
+
+
+// CURRENT YEAR
+document.getElementById("year").textContent = new Date().getFullYear();
+
+
+// CONSOLE MESSAGE
+console.log("Welcome to Anurag Gedam's Portfolio!");
